@@ -4,16 +4,22 @@ import com.pi4j.io.gpio.*;
 
 public class Output
 {
-    public final static int ditLength = 400;
+    public final static int ditLength = 250;
     private GpioPinDigitalOutput led;
 
-    public Output(String pin)
+    public Output(int pin)
     {
         try
         {
             GpioController gpio = GpioFactory.getInstance();
-            led = gpio.provisionDigitalOutputPin((Pin) RaspiPin.class.getField(pin).get(null), "MyLed", PinState.LOW);
+            String s = "GPIO_";
+            if(String.valueOf(pin).length() < 2)
+                s += "0";
+            s += String.valueOf(pin);
+            System.out.println(s);
+            led = gpio.provisionDigitalOutputPin((Pin) RaspiPin.class.getField(s).get(null), "MyLed", PinState.LOW);
             led.setShutdownOptions(true, PinState.LOW);
+
         } catch(Exception ex)
         {
             Logger.error(ex);
@@ -26,16 +32,18 @@ public class Output
 
     public void morse(String code)
     {
-        String[] toCode = code.split("/");
+        String[] toCode = code.split(" ");
 
-        for(String c : toCode)
-            if(c.equals(" "))
-                waitSevenDits();
+        for(int i = 0; i < toCode.length; i++)
+        {
+            System.out.print("morst...[" + (int) (((double) i / (double) toCode.length) * 100) + "%]\r");
+            if(toCode[i].equals("/"))
+                waitFiveDits();
             else
             {
-                for(int i = 0; i < c.length(); i++)
+                for(int j = 0; j < toCode[i].length(); j++)
                 {
-                    switch(c.charAt(i))
+                    switch(toCode[i].charAt(j))
                     {
                         case '.':
                             dit();
@@ -50,6 +58,9 @@ public class Output
                 }
                 waitDah();
             }
+        }
+
+        System.out.println("morst...[100%]");
     }
 
     private void dit()
@@ -76,9 +87,9 @@ public class Output
         waitSecs(ditLength * 3);
     }
 
-    private void waitSevenDits()
+    private void waitFiveDits()
     {
-        waitSecs(ditLength * 7);
+        waitSecs(ditLength * 5);
     }
 
     private void waitSecs(long length)

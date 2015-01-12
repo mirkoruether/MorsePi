@@ -37,7 +37,7 @@ public class Logger
             f.getParentFile().mkdirs();
             f.createNewFile();
 
-            PrintWriter writer = new PrintWriter(f);
+            PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(f), "ISO-8859-1"));
 
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
@@ -48,6 +48,10 @@ public class Logger
                          + t.getMessage() + "\n\n"
                          + sw.toString() + "\n\n"
                          + internLog);
+            writer.flush();
+            writer.close();
+
+            Thread.sleep(1500);
 
         } catch(Exception ex)
         {

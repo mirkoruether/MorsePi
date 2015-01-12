@@ -1,5 +1,6 @@
 package com.net.main;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 public class ConsoleMain
@@ -65,20 +66,20 @@ public class ConsoleMain
         char[] chars = text.toCharArray();
         HashMap<Character, String> alreadyFound = new HashMap<>();
 
-        alreadyFound.put(' ', " ");
+        alreadyFound.put(' ', " /");
 
         text = "";
         for(char c : chars)
             if(alreadyFound.containsKey(c))
-                text += alreadyFound.get(c) + "/";
+                text += alreadyFound.get(c) + " ";
             else
             {
                 foundCode = "";
                 findChar(tree, "", c);
-                text += foundCode + "/";
+                text += foundCode + " ";
                 alreadyFound.put(c, foundCode);
             }
-        while(text.endsWith("/"))
+        while(text.endsWith(" ") || text.endsWith("/"))
             text = text.substring(0, text.length() - 1);
         return text;
     }
@@ -98,27 +99,65 @@ public class ConsoleMain
 
     public static void main(String[] args)
     {
-        new ConsoleMain().run();
+        new ConsoleMain(args).run(args);
     }
 
-    public ConsoleMain()
-    {
-        output = new Output("GPIO_" + "4");
-    }
-
-    public void run()
+    public ConsoleMain(String[] args)
     {
         try
         {
-            String toSend = encode("SOS");
+            this.tree = initTree();
+            int pin;
+            if(args.length < 1)
+            {
+                System.out.print("Nummer des Pins:");
+                pin = Integer.parseInt(in(2));
+            }
+            else
+                pin = Integer.parseInt(args[0]);
+            output = new Output(pin);
+        } catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }
 
-            System.out.println(toSend);
+    public void run(String[] args)
+    {
+        try
+        {
+            String toMorse = "";
+            if(args.length < 2)
+            {
+                System.out.println("Nachricht:");
+                toMorse = in(256);
+            }
+            else
+                for(int i = 1; i < args.length; i++)
+                {
+                    if(i > 1)
+                        toMorse += " ";
+                    toMorse += args[i];
+                }
 
-            output.morse(toSend);
+            System.out.println(toMorse);
+            System.out.println(encode(toMorse));
+
+            output.morse(encode(toMorse));
 
         } catch(Exception ex)
         {
             ex.printStackTrace();
         }
+    }
+
+    private String in(int length) throws IOException
+    {
+        byte[] b = new byte[length];
+        System.in.read(b);
+        String s = new String(b);
+        while(s.endsWith(" ") || s.endsWith("\n"))
+            s = s.substring(0, s.length() - 1);
+        return s;
     }
 }
